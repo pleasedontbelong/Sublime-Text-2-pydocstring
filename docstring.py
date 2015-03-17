@@ -14,6 +14,7 @@ import datetime
 import getpass
 import os.path
 
+
 def construct_module_docstring():
     '''
     @summary: construct the module docstring
@@ -28,7 +29,7 @@ def construct_module_docstring():
     return docstring
 
 
-def construct_docstring(declaration, indent = 0):
+def construct_docstring(declaration, indent=0):
     '''
     @summary: construct docstring according to the declaration
     @param declaration: the result of parse_declaration() reurns
@@ -38,18 +39,19 @@ def construct_docstring(declaration, indent = 0):
     try:
         typename, name, params = declaration
         lines = []
-        lines.append("'''\n")
-        lines.append("@summary: \n")
+        lines.append('"""\n')
+        # lines.append("@summary: \n")
         # lines.append("\n")
         if typename == "class":
             pass
         elif typename == "def":
             if len(params):
                 for param in params:
-                    lines.append("@param %s:\n"%(param))
+                    lines.append(":param %s:\n" % (param,))
+                    lines.append(":type %s:\n" % (param,))
                 # lines.append("\n")
-            lines.append("@result: \n")
-        lines.append("'''\n")
+            lines.append(":return : \n")
+        lines.append('"""\n')
 
         for line in lines:
             docstring += " " * indent + line
@@ -70,11 +72,6 @@ def get_declaration(view, point):
     flag = False
     declaration_region = sublime.Region(0, 0)
 
-    b_need_forward = False
-    b_need_backward = False
-
-
-    declaration = ""
     line = view.line(point)
     begin_point = line.begin()
     end_point = line.end()
@@ -126,6 +123,7 @@ def get_declaration(view, point):
 
     return (flag, declaration_region)
 
+
 def parse_declaration(declaration):
     '''
     @summary: parse the class/def declaration
@@ -144,15 +142,15 @@ def parse_declaration(declaration):
                     index = i
         return index
 
-
     typename = ""
     name = ""
     params = []
 
-    tokens = {")": "(",
-                "]": "[",
-                "}": "{",
-                }
+    tokens = {
+        ")": "(",
+        "]": "[",
+        "}": "{"
+    }
 
     # extract typename
     declaration = declaration.strip()
@@ -201,7 +199,7 @@ def parse_declaration(declaration):
                 if c in tokens.keys():
                     # find the corresponding token
                     index = rindex(stack, tokens[c])
-                    print "c = %s, index = %s"%(c, index)
+                    print "c = %s, index = %s" % (c, index)
                     if index > 0:
                         # delete all of the elements between the paired tokens
                         stack = stack[:index]
@@ -243,7 +241,7 @@ class DocstringCommand(sublime_plugin.TextCommand):
             # print region.begin()
             if region.empty():
                 line = self.view.line(region)
-                previous_region = sublime.Region(0,line.begin())
+                previous_region = sublime.Region(0, line.begin())
                 previous_contents = self.view.substr(previous_region)
                 if len(previous_contents.strip()) == 0:
                     print "at the begin of the file so we can insert module docstring"
@@ -257,10 +255,11 @@ class DocstringCommand(sublime_plugin.TextCommand):
                 #     tab_size = 4
                 print "tab_size = ", tab_size
                 flag, declaration_region = get_declaration(self.view, line.begin())
-                print "declaration_region begin = %s, end = %s"%(declaration_region.begin(),
+                print "declaration_region begin = %s, end = %s" % (
+                    declaration_region.begin(),
                     declaration_region.end())
                 declaration = self.view.substr(declaration_region)
-                print "is_declaration: %s\ndeclaration:%s"%(flag, declaration)
+                print "is_declaration: %s\ndeclaration:%s" % (flag, declaration)
                 if flag:
                     # valid declaration
                     result = parse_declaration(declaration)
@@ -268,25 +267,22 @@ class DocstringCommand(sublime_plugin.TextCommand):
                     indent = 0
                     try:
                         name = result[1]
-                        print "declaration = %s, name = %s"%(declaration, name)
+                        print "declaration = %s, name = %s" % (declaration, name)
                         index = declaration.find(name)
-                        if index >=0:
+                        if index >= 0:
                             for i in xrange(index):
                                 if declaration[i] == "\t":
                                     indent += tab_size
                                 else:
                                     indent += 1
                         # calculate the real indent
-                        if indent % tab_size :
+                        if indent % tab_size:
                             indent = (indent / tab_size) * tab_size
-                        print "indent = %s"%(indent)
-                        docstring = construct_docstring(result, indent = indent)
-                        print "docstring is: \n%s" %(docstring)
+                        print "indent = %s" % (indent,)
+                        docstring = construct_docstring(result, indent=indent)
+                        print "docstring is: \n%s" % (docstring,)
                         # insert class/def docstring
                         # print "row = %s, col = %s"%(self.view.rowcol(declaration_region.end()))
                         self.view.insert(edit, declaration_region.end() + 2, docstring)
                     except Exception, e:
                         print e
-
-
-
