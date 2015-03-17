@@ -9,6 +9,29 @@ docstring.py
 docstring.py is a python docstring plugin, you can use this plugin to generate docstring
 for the module, class or function automatically.
 
+Output
+------
+Module
+```python
+# -*- coding: utf-8 -*-
+'''
+Created on 2015-03-17 12:29
+@summary: My super module
+@author: pablo
+'''
+```
+
+Method / function
+```python
+def my_method(self, param1):
+    """
+    :param param1: Something
+    :type param1: String
+    :return : Some magic stuff
+    Takes a param and magically turns it into a magic pink poney
+    """
+```
+
 Installation
 ------------
 Copy **[docstring.py](https://github.com/JerryKwan/Sublime-Text-2-pydocstring/blob/master/docstring.py)** into
